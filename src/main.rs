@@ -1,19 +1,20 @@
 use clap::Parser;
 use std::process::{Command, Stdio};
-use std::io::Write;
+use std::io::{self, Write};
 use std::error::Error;
 use std::time::{SystemTime, UNIX_EPOCH};
-use crossterm::event::{read, Event};
-use crossterm::terminal::{enable_raw_mode, disable_raw_mode};
+use crossterm::{
+    event::{read, Event},
+    terminal::{enable_raw_mode, disable_raw_mode, Clear, ClearType},
+    execute,
+};
 use nix::sys::signal::{kill, Signal};
 use nix::unistd::Pid;
 
 /// A CLI tool that records audio, transcribes it using whisper, and copies the transcription to the clipboard.
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
-struct Args {
-    // Future CLI options can be added here.
-}
+struct Args {}
 
 fn main() -> Result<(), Box<dyn Error>> {
     let _args = Args::parse();
@@ -38,16 +39,19 @@ fn main() -> Result<(), Box<dyn Error>> {
         .spawn()?;
 
     // Enable raw mode to capture a single key press.
-    crossterm::terminal::enable_raw_mode()?;
+    enable_raw_mode()?;
     println!("Press any key to stop recording...");
     // Wait for any key event.
     if let Event::Key(_) = read()? {
         // Disable raw mode as soon as the key is captured.
-        crossterm::terminal::disable_raw_mode()?;
+        disable_raw_mode()?;
+        // Clear the current line to remove any stray characters.
+        execute!(io::stdout(), Clear(ClearType::CurrentLine))?;
+        println!(); // Print a newline to start fresh.
         // Send SIGINT to ffmpeg so it stops gracefully.
         kill(Pid::from_raw(ffmpeg_child.id() as i32), Signal::SIGINT)?;
     } else {
-        crossterm::terminal::disable_raw_mode()?;
+        disable_raw_mode()?;
     }
 
     // Wait for ffmpeg to exit.
