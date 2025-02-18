@@ -1,11 +1,11 @@
 use clap::Parser;
-use std::process::{Command, Stdio};
-use std::io::{self, Write};
-use std::error::Error;
-use std::time::{SystemTime, UNIX_EPOCH};
+use console::{Style, Term};
 use nix::sys::signal::{kill, Signal};
 use nix::unistd::Pid;
-use console::{Term, Style, Key};
+use std::error::Error;
+use std::io::{self, Write};
+use std::process::{Command, Stdio};
+use std::time::{SystemTime, UNIX_EPOCH};
 
 /// A CLI tool that records audio, transcribes it using whisper,
 /// and copies the transcription to the clipboard.
@@ -17,7 +17,7 @@ struct Args {}
 fn print_step(term: &Term, msg: &str, style: &Style) -> io::Result<()> {
     // Clear the current line and print a message starting with "> "
     term.clear_line()?;
-    term.write_line(&format!("> {}", style.apply_to(msg))) 
+    term.write_line(&format!("> {}", style.apply_to(msg)))
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -37,16 +37,24 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut ffmpeg_child = Command::new("ffmpeg")
         .args(&[
             "-y", // Overwrite output file without prompting.
-            "-f", "alsa",
-            "-i", "front:CARD=BRIO",
-            "-filter:a", "volume=2",
-            "-t", "3600",
+            "-f",
+            "alsa",
+            "-i",
+            "front:CARD=BRIO",
+            "-filter:a",
+            "volume=2",
+            "-t",
+            "3600",
             &output_file,
         ])
         .stderr(Stdio::piped())
         .spawn()?;
 
-    print_step(&term, "Recording in progress... Press any key to stop.", &heading)?;
+    print_step(
+        &term,
+        "Recording in progress... Press any key to stop.",
+        &heading,
+    )?;
     // Wait for a single key press using console's built-in method.
     let _ = term.read_key()?;
     term.clear_line()?;
@@ -60,7 +68,11 @@ fn main() -> Result<(), Box<dyn Error>> {
     if let Some(code) = ffmpeg_exit.code() {
         // Accept both 130 and 255 as graceful SIGINT terminations.
         if code == 130 || code == 255 {
-            print_step(&term, "Recording stopped via SIGINT (desired behavior).", &heading)?;
+            print_step(
+                &term,
+                "Recording stopped via SIGINT (desired behavior).",
+                &heading,
+            )?;
         } else if code != 0 {
             return Err(format!("Failed to record audio. Exit code: {}", code).into());
         }
@@ -72,9 +84,12 @@ fn main() -> Result<(), Box<dyn Error>> {
     // Run whisper to transcribe the audio.
     let whisper_output = Command::new("whisper")
         .args(&[
-            "--model", "turbo",
-            "--device", "cuda",
-            "--language", "en",
+            "--model",
+            "turbo",
+            "--device",
+            "cuda",
+            "--language",
+            "en",
             &output_file,
         ])
         .output()?;
