@@ -1,4 +1,4 @@
-# Scribe
+# 🗣️📜✍️ Scribe
 
 A minimal Rust-based CLI tool that records audio using **ffmpeg**, transcribes it using **whisper**, and automatically copies the transcription to your clipboard. You press any key to stop recording.
 
@@ -64,22 +64,3 @@ By default, the code uses:
 ```
 
 If your system’s device differs, adjust that argument in the `Command::new("ffmpeg")` section of the code. For example, you might use -i hw:0,0 or another device string.
-
-## License
-
-This project is distributed under the terms of the MIT License. See LICENSE for details (or update with your own license if needed).
-
-## Contributing
-
-Feel free to submit issues or pull requests to improve or extend functionality, such as:
-
-* Supporting other audio input methods
-* Integrating different transcription backends
-* Handling advanced ffmpeg or whisper flags
-
-## Acknowledgments
-
-* Rust for providing a powerful, safe systems language
-* ffmpeg for robust audio recording and processing
-* whisper for speech-to-text transcription
-* console for clean terminal output
